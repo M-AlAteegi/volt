@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Volt – Own Your Performance</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── RESET & BASE ──────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #09090b;
+      --surface:   #111113;
+      --border:    rgba(255,255,255,0.07);
+      --text:      #f4f4f5;
+      --muted:     #71717a;
+      --volt:      #c8f135;
+      --volt-dim:  rgba(200,241,53,0.12);
+      --volt-glow: rgba(200,241,53,0.35);
+      --red:       #ff4757;
+      --blue:      #3b82f6;
+      --radius:    16px;
+      --font-head: 'Syne', sans-serif;
+      --font-body: 'DM Sans', sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
+      font-size: 16px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+
+    /* ─── NOISE OVERLAY ─────────────────────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 128px;
+    }
+
+    /* ─── NAV ───────────────────────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 20px 48px;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      background: rgba(9,9,11,0.72);
+    }
+    .nav-logo {
+      font-family: var(--font-head);
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+    }
+    .nav-logo span { color: var(--volt); }
+    .nav-links { display: flex; gap: 36px; }
+    .nav-links a {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--volt);
+      color: #0a0a0a;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 0.875rem;
+      padding: 10px 22px;
+      border-radius: 999px;
+      letter-spacing: 0.01em;
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .nav-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ─── HERO ──────────────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      min-height: 100svh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      overflow: hidden;
+    }
+    /* Radial glow behind headline */
+    .hero::after {
+      content: '';
+      position: absolute;
+      top: 30%;  left: 50%;
+      transform: translate(-50%, -50%);
+      width: 680px; height: 480px;
+      background: radial-gradient(ellipse at center, var(--volt-glow) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero > * { position: relative; z-index: 1; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--volt-dim);
+      border: 1px solid rgba(200,241,53,0.25);
+      color: var(--volt);
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 36px;
+      animation: fadeUp 0.6s ease both;
+    }
+    .hero-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--volt);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 0 0 var(--volt-glow); }
+      50%      { box-shadow: 0 0 0 6px transparent; }
+    }
+
+    .hero-headline {
+      font-family: var(--font-head);
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 800;
+      line-height: 1.0;
+      letter-spacing: -0.04em;
+      max-width: 900px;
+      animation: fadeUp 0.7s 0.1s ease both;
+    }
+    .hero-headline em {
+      font-style: normal;
+      color: var(--volt);
+      display: inline-block;
+    }
+
+    .hero-sub {
+      margin-top: 28px;
+      max-width: 520px;
+      font-size: 1.05rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.7;
+      animation: fadeUp 0.7s 0.2s ease both;
+    }
+
+    .hero-actions {
+      margin-top: 44px;
+      display: flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 0.7s 0.3s ease both;
+    }
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--volt);
+      color: #0a0a0a;
+      font-family: var(--font-head);
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 15px 32px;
+      border-radius: 999px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px var(--volt-glow);
+    }
+    .btn-ghost {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-family: var(--font-head);
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 15px 32px;
+      border-radius: 999px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .btn-ghost:hover { border-color: rgba(255,255,255,0.2); background: rgba(255,255,255,0.04); }
+
+    /* ─── HERO DASHBOARD PREVIEW ────────────────────────────────────── */
+    .hero-preview {
+      margin-top: 72px;
+      position: relative;
+      width: 100%;
+      max-width: 960px;
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+    .preview-glow {
+      position: absolute;
+      inset: -2px;
+      border-radius: calc(var(--radius) + 4px);
+      background: linear-gradient(135deg, var(--volt) 0%, var(--blue) 50%, var(--red) 100%);
+      opacity: 0.18;
+      filter: blur(12px);
+    }
+    .preview-frame {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .preview-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .preview-dot {
+      width: 10px; height: 10px; border-radius: 50%;
+    }
+    .preview-dot:nth-child(1) { background: #ff5f56; }
+    .preview-dot:nth-child(2) { background: #febc2e; }
+    .preview-dot:nth-child(3) { background: #28c840; }
+    .preview-url {
+      flex: 1; text-align: center;
+      font-size: 0.75rem; color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      padding: 4px 12px; border-radius: 6px;
+      max-width: 220px; margin: 0 auto;
+    }
+
+    /* mini dashboard inside preview */
+    .mini-dash {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      grid-template-rows: auto;
+      min-height: 360px;
+    }
+    .mini-sidebar {
+      border-right: 1px solid var(--border);
+      padding: 24px 16px;
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .mini-sidebar-label {
+      font-size: 0.6rem; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--muted);
+      padding: 4px 10px; margin-bottom: 8px;
+    }
+    .mini-nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 10px; border-radius: 10px;
+      font-size: 0.78rem; font-weight: 500; color: var(--muted);
+    }
+    .mini-nav-item.active {
+      background: var(--volt-dim);
+      color: var(--volt);
+    }
+    .mini-nav-icon {
+      width: 18px; height: 18px;
+      border-radius: 5px;
+      display: grid; place-items: center;
+      font-size: 0.7rem;
+    }
+    .mini-content {
+      padding: 20px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .mini-content-header {
+      font-family: var(--font-head);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .mini-tiles {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+    }
+    .mini-tile {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .mini-tile-label { font-size: 0.58rem; color: var(--muted); margin-bottom: 4px; }
+    .mini-tile-value { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; }
+    .mini-tile-value.volt { color: var(--volt); }
+    .mini-chart-area {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      height: 120px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* SVG sparkline */
+    .mini-chart-area svg { width: 100%; height: 100%; }
+
+    /* ─── STATS ROW ─────────────────────────────────────────────────── */
+    .stats-row {
+      display: flex; justify-content: center; gap: 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+      animation: fadeUp 0.7s 0.5s ease both;
+    }
+    .stat-item {
+      flex: 1; max-width: 240px;
+      padding: 36px 32px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-family: var(--font-head);
+      font-size: 2.6rem;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+    }
+    .stat-num span { color: var(--volt); }
+    .stat-label { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+
+    /* ─── FEATURES SECTION ──────────────────────────────────────────── */
+    .section { padding: 100px 48px; max-width: 1200px; margin: 0 auto; }
+    .section-tag {
+      display: inline-block;
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--volt);
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: var(--font-head);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      max-width: 560px;
+      margin-bottom: 20px;
+    }
+    .section-desc {
+      color: var(--muted);
+      max-width: 480px;
+      font-size: 1rem;
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    .features-grid {
+      margin-top: 64px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .feat-card {
+      background: var(--bg);
+      padding: 36px 32px;
+      display: flex; flex-direction: column; gap: 16px;
+      transition: background 0.25s;
+    }
+    .feat-card:hover { background: var(--surface); }
+    .feat-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      font-size: 1.2rem;
+      background: var(--volt-dim);
+      color: var(--volt);
+    }
+    .feat-title {
+      font-family: var(--font-head);
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+    .feat-desc { font-size: 0.875rem; color: var(--muted); line-height: 1.65; }
+
+    /* ─── THEME PREVIEW ─────────────────────────────────────────────── */
+    .theme-section {
+      padding: 100px 48px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+    .theme-inner { max-width: 1200px; margin: 0 auto; }
+    .theme-demos {
+      margin-top: 56px;
+      display: flex; gap: 16px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+    .theme-pill {
+      display: inline-flex; align-items: center; gap: 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 10px 20px;
+      font-size: 0.875rem; font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .theme-pill.active, .theme-pill:hover {
+      border-color: var(--volt);
+      color: var(--volt);
+      background: var(--volt-dim);
+    }
+    .theme-swatch {
+      width: 14px; height: 14px; border-radius: 50%;
+    }
+    .theme-cards {
+      margin-top: 32px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .theme-card {
+      border-radius: var(--radius);
+      padding: 24px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .theme-card.dark-card { background: #111113; }
+    .theme-card.light-card { background: #f4f4f5; color: #09090b; }
+    .theme-card.oled-card { background: #000000; }
+    .theme-card-label {
+      font-family: var(--font-head);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+    .theme-card.light-card .theme-card-label { opacity: 0.4; }
+    .ring-demo {
+      width: 80px; height: 80px;
+      margin: 0 auto 16px;
+      position: relative;
+    }
+    .ring-demo svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .ring-demo .ring-label {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      transform: none; font-family: var(--font-head);
+    }
+    .ring-demo .ring-pct { font-size: 1.1rem; font-weight: 800; line-height: 1; }
+    .ring-demo .ring-unit { font-size: 0.55rem; font-weight: 500; opacity: 0.5; }
+
+    /* ─── CTA SECTION ───────────────────────────────────────────────── */
+    .cta-section {
+      padding: 120px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      bottom: -100px; left: 50%;
+      transform: translateX(-50%);
+      width: 600px; height: 400px;
+      background: radial-gradient(ellipse at center, var(--volt-glow) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-section > * { position: relative; }
+    .cta-title {
+      font-family: var(--font-head);
+      font-size: clamp(2.4rem, 5vw, 4.5rem);
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      line-height: 1.05;
+      margin-bottom: 28px;
+    }
+    .cta-title span { color: var(--volt); }
+
+    /* ─── FOOTER ────────────────────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-logo {
+      font-family: var(--font-head);
+      font-size: 1.1rem;
+      font-weight: 800;
+    }
+    .footer-logo span { color: var(--volt); }
+    footer small { color: var(--muted); font-size: 0.8rem; }
+
+    /* ─── ANIMATIONS ────────────────────────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      nav { padding: 16px 24px; }
+      .nav-links { display: none; }
+      .mini-dash { grid-template-columns: 1fr; }
+      .mini-sidebar { display: none; }
+      .mini-tiles { grid-template-columns: repeat(2, 1fr); }
+      .features-grid { grid-template-columns: 1fr; }
+      .theme-cards { grid-template-columns: 1fr; }
+      .section, .cta-section { padding: 64px 24px; }
+      .stats-row { flex-direction: column; }
+      .stat-item { border-right: none; border-bottom: 1px solid var(--border); max-width: 100%; }
+      footer { flex-direction: column; gap: 12px; text-align: center; padding: 32px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── NAV ──────────────────────────────────────────────────────────── -->
+  <nav>
+    <div class="nav-logo">V<span>o</span>lt</div>
+    <div class="nav-links">
+      <a href="#">Features</a>
+      <a href="#">Analytics</a>
+      <a href="#">Pricing</a>
+      <a href="#">Blog</a>
+    </div>
+    <a href="dashboard.html" class="nav-cta">Open Dashboard →</a>
+  </nav>
+
+  <!-- ── HERO ─────────────────────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-badge">Now in Public Beta</div>
+    <h1 class="hero-headline">
+      Train Smarter.<br />
+      Recover <em>Faster.</em><br />
+      Own Every Rep.
+    </h1>
+    <p class="hero-sub">
+      Volt turns raw fitness data into razor-sharp insight. Macro trends, workout analytics, and goal tracking — all in one obsessively crafted interface.
+    </p>
+    <div class="hero-actions">
+      <a href="dashboard.html" class="btn-primary">
+        See the Dashboard
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="#features" class="btn-ghost">Learn More</a>
+    </div>
+
+    <!-- Mini Dashboard Preview -->
+    <div class="hero-preview">
+      <div class="preview-glow"></div>
+      <div class="preview-frame">
+        <div class="preview-bar">
+          <div class="preview-dot"></div>
+          <div class="preview-dot"></div>
+          <div class="preview-dot"></div>
+          <div class="preview-url">volt.app/dashboard</div>
+        </div>
+        <div class="mini-dash">
+          <div class="mini-sidebar">
+            <div class="mini-sidebar-label">Main Menu</div>
+            <div class="mini-nav-item active">
+              <div class="mini-nav-icon">⚡</div> Dashboard
+            </div>
+            <div class="mini-nav-item">
+              <div class="mini-nav-icon">📊</div> Analytics
+            </div>
+            <div class="mini-nav-item">
+              <div class="mini-nav-icon">🥗</div> Nutrition
+            </div>
+            <div class="mini-nav-item">
+              <div class="mini-nav-icon">🏋️</div> Workouts
+            </div>
+            <div class="mini-nav-item">
+              <div class="mini-nav-icon">🎯</div> Goals
+            </div>
+          </div>
+          <div class="mini-content">
+            <div class="mini-content-header">Today's Overview</div>
+            <div class="mini-tiles">
+              <div class="mini-tile">
+                <div class="mini-tile-label">Calories</div>
+                <div class="mini-tile-value volt">1,842</div>
+              </div>
+              <div class="mini-tile">
+                <div class="mini-tile-label">Protein</div>
+                <div class="mini-tile-value">148g</div>
+              </div>
+              <div class="mini-tile">
+                <div class="mini-tile-label">Volume</div>
+                <div class="mini-tile-value">24,100</div>
+              </div>
+              <div class="mini-tile">
+                <div class="mini-tile-label">Streak</div>
+                <div class="mini-tile-value volt">12 🔥</div>
+              </div>
+            </div>
+            <div class="mini-chart-area">
+              <svg viewBox="0 0 600 120" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#c8f135" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#c8f135" stop-opacity="0"/>
+                  </linearGradient>
+                </defs>
+                <path d="M0,80 C60,75 90,40 150,45 C210,50 240,85 300,55 C360,25 390,60 450,35 C510,10 540,20 600,15 L600,120 L0,120 Z" fill="url(#cg)"/>
+                <path d="M0,80 C60,75 90,40 150,45 C210,50 240,85 300,55 C360,25 390,60 450,35 C510,10 540,20 600,15" fill="none" stroke="#c8f135" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── STATS ROW ─────────────────────────────────────────────────────── -->
+  <div class="stats-row">
+    <div class="stat-item">
+      <div class="stat-num"><span>50</span>K+</div>
+      <div class="stat-label">Active Athletes</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num"><span>2.4</span>M</div>
+      <div class="stat-label">Workouts Logged</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num"><span>98</span>%</div>
+      <div class="stat-label">Goal Completion Rate</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num"><span>4.9</span>★</div>
+      <div class="stat-label">Average Rating</div>
+    </div>
+  </div>
+
+  <!-- ── FEATURES ──────────────────────────────────────────────────────── -->
+  <section id="features" class="section">
+    <div class="section-tag">↯ Why Volt</div>
+    <h2 class="section-title">Data that actually moves the needle.</h2>
+    <p class="section-desc">Built for serious athletes who want more than a calorie counter. Every metric is designed to drive decisions.</p>
+
+    <div class="features-grid">
+      <div class="feat-card">
+        <div class="feat-icon">⚡</div>
+        <div class="feat-title">Live Macro Rings</div>
+        <div class="feat-desc">Circular progress components update in real-time as you log meals. Protein, carbs, fat — at a glance.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📈</div>
+        <div class="feat-title">Volume Trend Charts</div>
+        <div class="feat-desc">Weekly and monthly workout volume visualized with interactive charts. Spot overtraining before it hurts you.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🌓</div>
+        <div class="feat-title">3-Mode Theming</div>
+        <div class="feat-desc">Light, Dark, and OLED Black. Switch themes and the entire UI adapts instantly — no page reload.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🗓️</div>
+        <div class="feat-title">Periodization View</div>
+        <div class="feat-desc">See your entire training block laid out visually. Know when to push and when to recover.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎯</div>
+        <div class="feat-title">Smart Goal Engine</div>
+        <div class="feat-desc">Set physique, performance, or body-comp goals. Volt calculates daily targets and adjusts them dynamically.</div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📱</div>
+        <div class="feat-title">Responsive Grid</div>
+        <div class="feat-desc">Activity tiles reflow from a 4-col desktop grid to a clean 2-col mobile layout using pure CSS Grid.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── THEME PREVIEW ─────────────────────────────────────────────────── -->
+  <section class="theme-section">
+    <div class="theme-inner">
+      <div class="section-tag">↯ Dynamic Themes</div>
+      <h2 class="section-title">Three moods. One interface.</h2>
+      <p class="section-desc">Toggle between Dark, Light, and OLED Black — implemented with React state and CSS variables.</p>
+
+      <div class="theme-demos">
+        <div class="theme-pill active">
+          <div class="theme-swatch" style="background:#111113;border:1px solid #333"></div> Dark
+        </div>
+        <div class="theme-pill">
+          <div class="theme-swatch" style="background:#f4f4f5;border:1px solid #ddd"></div> Light
+        </div>
+        <div class="theme-pill">
+          <div class="theme-swatch" style="background:#000000;border:1px solid #333"></div> OLED Black
+        </div>
+      </div>
+
+      <div class="theme-cards">
+        <!-- Dark -->
+        <div class="theme-card dark-card">
+          <div class="theme-card-label">Dark</div>
+          <div class="ring-demo">
+            <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(200,241,53,0.12)" stroke-width="7"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="#c8f135" stroke-width="7"
+                stroke-dasharray="213.6" stroke-dashoffset="64" stroke-linecap="round"/>
+            </svg>
+            <div class="ring-label">
+              <span class="ring-pct" style="color:#c8f135">70%</span>
+              <span class="ring-unit" style="color:#f4f4f5">PROTEIN</span>
+            </div>
+          </div>
+          <div style="font-size:0.75rem;color:#71717a;text-align:center">Background: #09090b</div>
+        </div>
+        <!-- Light -->
+        <div class="theme-card light-card">
+          <div class="theme-card-label" style="color:#09090b">Light</div>
+          <div class="ring-demo">
+            <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(9,9,11,0.08)" stroke-width="7"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="#09090b" stroke-width="7"
+                stroke-dasharray="213.6" stroke-dashoffset="64" stroke-linecap="round"/>
+            </svg>
+            <div class="ring-label">
+              <span class="ring-pct" style="color:#09090b">70%</span>
+              <span class="ring-unit" style="color:#09090b">PROTEIN</span>
+            </div>
+          </div>
+          <div style="font-size:0.75rem;color:#52525b;text-align:center">Background: #f4f4f5</div>
+        </div>
+        <!-- OLED -->
+        <div class="theme-card oled-card">
+          <div class="theme-card-label">OLED Black</div>
+          <div class="ring-demo">
+            <svg viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(200,241,53,0.08)" stroke-width="7"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="#c8f135" stroke-width="7"
+                stroke-dasharray="213.6" stroke-dashoffset="64" stroke-linecap="round"/>
+            </svg>
+            <div class="ring-label">
+              <span class="ring-pct" style="color:#c8f135">70%</span>
+              <span class="ring-unit" style="color:#a1a1aa">PROTEIN</span>
+            </div>
+          </div>
+          <div style="font-size:0.75rem;color:#52525b;text-align:center">Background: #000000</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ───────────────────────────────────────────────────────────── -->
+  <section class="cta-section">
+    <h2 class="cta-title">Your data is<br /><span>already talking.</span><br />Are you listening?</h2>
+    <div class="hero-actions">
+      <a href="dashboard.html" class="btn-primary">
+        Launch Dashboard
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ─────────────────────────────────────────────────────────── -->
+  <footer>
+    <div class="footer-logo">V<span>o</span>lt</div>
+    <small>© 2026 Volt Fitness Analytics. A portfolio proof-of-concept.</small>
+  </footer>
+
+</body>
+</html>
